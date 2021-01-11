@@ -33,6 +33,8 @@ class KevlarMod : ModInitializer {
                 ItemGroup.TOOLS
             )
         )
+
+        val S2C_UPDATE_RIGIDBODY_STATES = Identifier("kevlar", "update_rb")
     }
 
     override fun onInitialize() {

@@ -30,6 +30,6 @@ class KevlarComponents : ChunkComponentInitializer, WorldComponentInitializer {
     }
 
     override fun registerWorldComponentFactories(registry: WorldComponentFactoryRegistry) {
-        registry.register(PHYS_WORLD) { PhysicsWorldComponent() }
+        registry.register(PHYS_WORLD, ::PhysicsWorldComponent)
     }
 }

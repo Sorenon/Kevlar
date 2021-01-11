@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObjectArray;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.monarkhēs.myron.api.Myron;
 import net.minecraft.block.Blocks;
@@ -26,6 +27,7 @@ import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -40,6 +42,17 @@ abstract class WorldRendererMixin {
 
     @Shadow
     private ClientWorld world;
+
+    @Unique
+    private long time = System.currentTimeMillis();
+
+    @Inject(at = @At("HEAD"), method = "render")
+    public void tickPhysics(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
+        long newTime = System.currentTimeMillis();
+        PhysicsWorldComponent phys = KevlarComponents.getPHYS_WORLD().get(world);
+        phys.getDynamicsWorld().stepSimulation((newTime - time) / 1000.0f, 10);
+        time = newTime;
+    }
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;draw(Lnet/minecraft/client/render/RenderLayer;)V", ordinal = 0), method = "render")
     public void postRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
@@ -75,9 +88,10 @@ abstract class WorldRendererMixin {
 
         for (int i = 0; i < arr.size(); i++) {
             btCollisionObject obj = arr.atConst(i);
-            if (obj.getCollisionShape() == phys.getBallShape()) {
+            if (obj.getCollisionShape() == phys.getBallShape() && obj instanceof btRigidBody) {
                 matrices.push();
-                Matrix4 trans = obj.getWorldTransform();
+                Matrix4 trans = new Matrix4();
+                ((btRigidBody) obj).getMotionState().getWorldTransform(trans);
                 Quaternion quat = trans.getRotation(new Quaternion());
                 Vector3 pos = trans.getTranslation(new Vector3());
                 BlockPos blockPos = new BlockPos(pos.x, pos.y, pos.z);

@@ -12,7 +12,7 @@ import net.sorenon.kevlar.init.KevlarModClient
 
 class BallItem(settings: Settings) : Item(settings) {
     override fun useOnBlock(context: ItemUsageContext): ActionResult {
-        if (context.world.isClient) {
+//        if (!context.world.isClient) {
             val pos = context.blockPos.offset(context.side)
             val phys = KevlarComponents.PHYS_WORLD.get(context.world)
 
@@ -25,9 +25,8 @@ class BallItem(settings: Settings) : Item(settings) {
             val fallRigidBodyCI = btRigidBody.btRigidBodyConstructionInfo(mass, fallMotionState, phys.ballShape, fallInertia)
             val ball = btRigidBody(fallRigidBodyCI)
             ball.restitution = 0.1f
-            phys.dynamicsWorld.addRigidBody(ball)
-
-        }
+            phys.addRigidBody(ball)
+//        }
         return ActionResult.SUCCESS
     }
 }

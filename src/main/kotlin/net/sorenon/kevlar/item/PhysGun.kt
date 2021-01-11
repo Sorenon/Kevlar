@@ -25,7 +25,7 @@ class PhysGun(settings: Settings) : Item(settings) {
     var constraint: btFixedConstraint? = null
 
     override fun use(world: World, user: PlayerEntity, hand: Hand): TypedActionResult<ItemStack> {
-        if (world.isClient) {
+        if (!world.isClient) {
             val phys = KevlarComponents.PHYS_WORLD.get(world)
             val cameraPos = user.getCameraPosVec(1.0f)
             val look = user.getRotationVec(1.0f)
@@ -59,7 +59,7 @@ class PhysGun(settings: Settings) : Item(settings) {
     }
 
     override fun usageTick(world: World, user: LivingEntity, stack: ItemStack, remainingUseTicks: Int) {
-        if (world.isClient && otherBody?.isDisposed == false) {
+        if (!world.isClient && otherBody?.isDisposed == false) {
             distance = max(1.0, distance)
 
             val transform = Matrix4()
@@ -85,7 +85,7 @@ class PhysGun(settings: Settings) : Item(settings) {
     }
 
     override fun onStoppedUsing(stack: ItemStack, world: World, user: LivingEntity, remainingUseTicks: Int) {
-        if (world.isClient && otherBody?.isDisposed == false) {
+        if (!world.isClient && otherBody?.isDisposed == false) {
             val phys = KevlarComponents.PHYS_WORLD.get(world)
             phys.dynamicsWorld.removeConstraint(constraint)
             phys.dynamicsWorld.removeRigidBody(grabBody)
