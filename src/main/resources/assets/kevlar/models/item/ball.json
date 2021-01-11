@@ -1,0 +1,5 @@
+{
+  "parent": "minecraft:block/block",
+  "model": "kevlar:misc/sphere",
+  "gui_light": "side"
+}

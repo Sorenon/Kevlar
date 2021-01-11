@@ -1,0 +1,110 @@
+plugins {
+    id 'fabric-loom'
+    id 'maven-publish'
+    id "org.jetbrains.kotlin.jvm"
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+archivesBaseName = project.archives_base_name
+version = project.mod_version
+group = project.maven_group
+
+minecraft {
+}
+
+
+repositories {
+    maven { url = "http://maven.fabricmc.net/" }
+    maven {
+        name = "Ladysnake Libs"
+        url = "https://dl.bintray.com/ladysnake/libs"
+    }
+    maven { url = "https://hephaestus.dev/release" }
+
+    maven {
+        name "Terasology Artifactory"
+        url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
+        allowInsecureProtocol true  // 😱
+    }
+}
+
+dependencies {
+    //to change the versions see the gradle.properties file
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
+
+	compile "com.badlogicgames.gdx:gdx-bullet:${project.libgdk_version}"
+    compile "com.badlogicgames.gdx:gdx-bullet-platform:${project.libgdk_version}:natives-desktop"
+//    compile "org.terasology.jnbullet:JNBullet:1.0.2" TODO benchmark this vs my approach
+    //From a quick look there is a max of 65535 different shapes, for comparison vanilla has 17112 blockstates
+
+    modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cc_version}"
+    modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-chunk:${project.cc_version}"
+    modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-world:${project.cc_version}"
+
+    modApi "dev.monarkhes:myron:1.5.0"
+    include "dev.monarkhes:myron:1.5.0"
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include "fabric.mod.json"
+        expand "version": project.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude "fabric.mod.json"
+    }
+}
+
+// ensure that the encoding is set to UTF-8, no matter what the system default is
+// this fixes some edge cases with special characters not displaying correctly
+// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+// if it is present.
+// If you remove this task, sources will not be generated.
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = "sources"
+    from sourceSets.main.allSource
+}
+
+jar {
+    from "LICENSE"
+}
+
+// configure the maven publication
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            // add all the jars that should be included when publishing to maven
+            artifact(remapJar) {
+                builtBy remapJar
+            }
+            artifact(sourcesJar) {
+                builtBy remapSourcesJar
+            }
+        }
+    }
+
+    // select the repositories you want to publish to
+    repositories {
+        // uncomment to publish to the local maven
+        // mavenLocal()
+    }
+}
+
+compileKotlin.kotlinOptions.jvmTarget = "1.8"

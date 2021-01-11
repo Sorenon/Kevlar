@@ -1,0 +1,6 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl redstone
+emissive true
+texture minecraft:block/oak_log
