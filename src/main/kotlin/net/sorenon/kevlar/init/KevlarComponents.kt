@@ -1,21 +1,21 @@
 package net.sorenon.kevlar.init
 
-import dev.onyxstudios.cca.api.v3.chunk.ChunkComponentFactoryRegistry
-import dev.onyxstudios.cca.api.v3.chunk.ChunkComponentInitializer
 import dev.onyxstudios.cca.api.v3.component.ComponentKey
 import dev.onyxstudios.cca.api.v3.component.ComponentRegistry
+import dev.onyxstudios.cca.api.v3.entity.EntityComponentFactoryRegistry
+import dev.onyxstudios.cca.api.v3.entity.EntityComponentInitializer
 import dev.onyxstudios.cca.api.v3.world.WorldComponentFactoryRegistry
 import dev.onyxstudios.cca.api.v3.world.WorldComponentInitializer
-import net.sorenon.kevlar.PhysicsChunkComp
 import net.minecraft.util.Identifier
+import net.sorenon.kevlar.GrabberComponent
 import net.sorenon.kevlar.PhysicsWorldComponent
 
-class KevlarComponents : ChunkComponentInitializer, WorldComponentInitializer {
-    public companion object {
+class KevlarComponents : EntityComponentInitializer, WorldComponentInitializer {
+    companion object {
         @JvmStatic
-        val PHYS_CHUNK: ComponentKey<PhysicsChunkComp> = ComponentRegistry.getOrCreate(
-            Identifier("nbulletmc", "physics_chunk"),
-            PhysicsChunkComp::class.java
+        val GRABBER: ComponentKey<GrabberComponent> = ComponentRegistry.getOrCreate(
+            Identifier("kevlar", "grabber"),
+            GrabberComponent::class.java
         )
 
         @JvmStatic
@@ -25,11 +25,11 @@ class KevlarComponents : ChunkComponentInitializer, WorldComponentInitializer {
         )
     }
 
-    override fun registerChunkComponentFactories(registry: ChunkComponentFactoryRegistry) {
-        registry.register(PHYS_CHUNK, ::PhysicsChunkComp)
-    }
-
     override fun registerWorldComponentFactories(registry: WorldComponentFactoryRegistry) {
         registry.register(PHYS_WORLD, ::PhysicsWorldComponent)
+    }
+
+    override fun registerEntityComponentFactories(registry: EntityComponentFactoryRegistry) {
+        registry.registerForPlayers(GRABBER, ::GrabberComponent)
     }
 }

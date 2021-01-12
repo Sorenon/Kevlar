@@ -8,7 +8,6 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemUsageContext
 import net.minecraft.util.ActionResult
 import net.sorenon.kevlar.init.KevlarComponents
-import net.sorenon.kevlar.init.KevlarModClient
 
 class BallItem(settings: Settings) : Item(settings) {
     override fun useOnBlock(context: ItemUsageContext): ActionResult {
@@ -25,7 +24,7 @@ class BallItem(settings: Settings) : Item(settings) {
             val fallRigidBodyCI = btRigidBody.btRigidBodyConstructionInfo(mass, fallMotionState, phys.ballShape, fallInertia)
             val ball = btRigidBody(fallRigidBodyCI)
             ball.restitution = 0.1f
-            phys.addRigidBody(ball)
+            phys.addRegisteredRigidBody(ball)
 //        }
         return ActionResult.SUCCESS
     }

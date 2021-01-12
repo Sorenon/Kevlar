@@ -18,6 +18,8 @@ import net.sorenon.kevlar.networking.RigidBodyMinimalSyncData
 class KevlarModClient : ClientModInitializer {
     companion object {
         lateinit var drawer: PhysDebugDrawer
+
+        var debugDrawEnabled = false
     }
 
     override fun onInitializeClient() {
@@ -40,6 +42,7 @@ class KevlarModClient : ClientModInitializer {
                         val rb = phys.registeredRigidBodies[syncData.id]!!
 //                        rb.getWorldTransform(mat)
                         //TODO interpolate between transforms
+                        rb.forceActivationState(syncData.activationState)
                         mat.idt()
                         mat.setTranslation(syncData.pos)
                         mat.rotate(syncData.rot)

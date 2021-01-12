@@ -23,11 +23,11 @@ repositories {
     }
     maven { url = "https://hephaestus.dev/release" }
 
-    maven {
-        name "Terasology Artifactory"
-        url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
-        allowInsecureProtocol true  // 😱
-    }
+//    maven {
+//        name "Terasology Artifactory"
+//        url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
+//        allowInsecureProtocol true  // 😱
+//    }
 }
 
 dependencies {
@@ -44,11 +44,12 @@ dependencies {
 	compile "com.badlogicgames.gdx:gdx-bullet:${project.libgdk_version}"
     compile "com.badlogicgames.gdx:gdx-bullet-platform:${project.libgdk_version}:natives-desktop"
 //    compile "org.terasology.jnbullet:JNBullet:1.0.2" TODO benchmark this vs my approach
-    //From a quick look there is a max of 65535 different shapes, for comparison vanilla has 17112 blockstates
+    //From a quick look there is a max of 65535 different shapes, for comparison vanilla has 17112 blockstates so big modpacks might struggle
 
     modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${project.cc_version}"
     modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-chunk:${project.cc_version}"
     modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-world:${project.cc_version}"
+    modApi "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-entity:${project.cc_version}"
 
     modApi "dev.monarkhes:myron:1.5.0"
     include "dev.monarkhes:myron:1.5.0"

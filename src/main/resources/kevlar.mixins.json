@@ -3,10 +3,11 @@
   "package": "net.sorenon.kevlar.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MouseMixin",
     "WorldMixin"
   ],
   "client": [
+    "KeyboardMixin",
+    "MouseMixin",
     "WorldRendererMixin"
   ],
   "injectors": {

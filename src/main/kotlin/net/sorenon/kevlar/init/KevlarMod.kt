@@ -7,6 +7,7 @@ import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 import net.sorenon.kevlar.item.BallItem
 import net.sorenon.kevlar.item.GravityGun
+import net.sorenon.kevlar.item.MiniBlockItem
 import net.sorenon.kevlar.item.PhysGun
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -34,6 +35,12 @@ class KevlarMod : ModInitializer {
             )
         )
 
+        val BLOCK_ITEM = MiniBlockItem(
+            Item.Settings().group(
+                ItemGroup.TOOLS
+            )
+        )
+
         val S2C_UPDATE_RIGIDBODY_STATES = Identifier("kevlar", "update_rb")
     }
 
@@ -41,6 +48,7 @@ class KevlarMod : ModInitializer {
         registerItem(GRAVITY_GUN_ITEM, "gravity_gun")
         registerItem(PHYS_GUN_ITEM, "phys_gun")
         registerItem(BALL_ITEM, "ball")
+        registerItem(BLOCK_ITEM, "mini_block")
     }
 
     private fun registerItem(item: Item, name: String) {

@@ -22,6 +22,10 @@ class PhysicsTickCallback(val phys: PhysicsWorldComponent, isPreTick: Boolean) :
 
     override fun onInternalTick(dynamicsWorld: btDynamicsWorld, timeStep: Float) {
         for (rigidBody in phys.registeredRigidBodies.values) {
+            if (rigidBody.isStaticOrKinematicObject || !rigidBody.isActive) {
+                continue
+            }
+
             rigidBody.getWorldTransform(matrix4)
             rigidBody.collisionShape.getAabb(matrix4, aabbMin, aabbMax)
 

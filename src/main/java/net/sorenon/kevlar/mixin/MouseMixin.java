@@ -19,7 +19,7 @@ public class MouseMixin {
 
         assert player != null;
         if (player.getActiveItem().getItem() instanceof PhysGun) {
-            KevlarMod.Companion.getPHYS_GUN_ITEM().setDistance(KevlarMod.Companion.getPHYS_GUN_ITEM().getDistance() + vertical);
+//            KevlarMod.Companion.getPHYS_GUN_ITEM().setDistance(KevlarMod.Companion.getPHYS_GUN_ITEM().getDistance() + vertical);
             ci.cancel();
         }
     }

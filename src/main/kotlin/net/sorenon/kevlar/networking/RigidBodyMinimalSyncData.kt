@@ -11,20 +11,24 @@ import net.minecraft.network.PacketByteBuf
 class RigidBodyMinimalSyncData(buf: PacketByteBuf) {
     companion object {
         val matrix4 = Matrix4()
-        val vec = Vector3()
+        val pos = Vector3()
         val quat = Quaternion()
 
         fun write(rb: btRigidBody, buf: PacketByteBuf) {
+            val activationState = rb.activationState
+            buf.writeByte(activationState)
             rb.getWorldTransform(matrix4)
-            matrix4.getTranslation(vec)
+            matrix4.getTranslation(pos)
             matrix4.getRotation(quat)
-            writeVec(vec, buf)
-            writeVec(rb.linearVelocity, buf)
+            writeVec(pos, buf)
             buf.writeFloat(quat.x)
             buf.writeFloat(quat.y)
             buf.writeFloat(quat.z)
             buf.writeFloat(quat.w)
-            writeVec(rb.angularVelocity, buf)
+            if (activationState != 0) {
+                writeVec(rb.linearVelocity, buf)
+                writeVec(rb.angularVelocity, buf)
+            }
         }
 
         private fun writeVec(vec: Vector3, buf: PacketByteBuf) {
@@ -34,18 +38,22 @@ class RigidBodyMinimalSyncData(buf: PacketByteBuf) {
         }
     }
 
-    val id: Int
+    val activationState: Int
+    val id: Short
     val pos: Vector3
-    val vel: Vector3
     val rot: Quaternion
-    val aVel: Vector3
+    var vel: Vector3? = null
+    var aVel: Vector3? = null
 
     init {
-        id = buf.readInt()
+        id = buf.readShort()
+        activationState = buf.readByte().toInt()
         pos = readVec(buf)
-        vel = readVec(buf)
         rot = Quaternion(buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat())
-        aVel = readVec(buf)
+        if (activationState != 0) {
+            vel = readVec(buf)
+            aVel = readVec(buf)
+        }
     }
 
     private fun readVec(buf: PacketByteBuf): Vector3 {

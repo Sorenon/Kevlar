@@ -30,7 +30,7 @@ class PhysicsWorldComponent(val world: World) : ComponentV3, Component, ClientTi
     val tickCallback: PhysicsTickCallback
     var ticks = 0;
 
-    val registeredRigidBodies = hashMapOf<Int, btRigidBody>()
+    val registeredRigidBodies = hashMapOf<Short, btRigidBody>()
 
     init {
         planeShape = btStaticPlaneShape(Vector3(0f, 1f, 0f), 1f)
@@ -44,10 +44,9 @@ class PhysicsWorldComponent(val world: World) : ComponentV3, Component, ClientTi
         plane = btCollisionObject()
         plane.collisionShape = planeShape
         dynamicsWorld.addCollisionObject(plane)
-        tickCallback = PhysicsTickCallback(dynamicsWorld, true)
+        tickCallback = PhysicsTickCallback(this, true)
         tickCallback.attach()
         dynamicsWorld.debugDrawer = KevlarModClient.drawer
-        KevlarMod.PHYS_GUN_ITEM.grabBody = btRigidBody(0f, btDefaultMotionState(), btEmptyShape())
     }
 
     override fun readFromNbt(p0: CompoundTag) {
@@ -58,19 +57,19 @@ class PhysicsWorldComponent(val world: World) : ComponentV3, Component, ClientTi
 
     }
 
-    fun addRigidBody(rb: btRigidBody) {
+    fun addRegisteredRigidBody(rb: btRigidBody) {
         dynamicsWorld.addRigidBody(rb)
-        registeredRigidBodies[registeredRigidBodies.keys.size] = rb
+        registeredRigidBodies[registeredRigidBodies.keys.size.toShort()] = rb
     }
 
     override fun serverTick() {
-        dynamicsWorld.stepSimulation(1 / 20f, 10, 1 / 80f)
+        stepSimulation(1f / 20, 10)
         ticks += 1
 
         if (ticks % 2 == 0) {
             val buf = PacketByteBufs.create()
             for (pair in registeredRigidBodies) {
-                buf.writeInt(pair.key)
+                buf.writeShort(pair.key.toInt())
                 RigidBodyMinimalSyncData.write(pair.value, buf)
             }
 
@@ -78,6 +77,10 @@ class PhysicsWorldComponent(val world: World) : ComponentV3, Component, ClientTi
                 ServerPlayNetworking.send(it, KevlarMod.S2C_UPDATE_RIGIDBODY_STATES, buf)
             }
         }
+    }
+
+    fun stepSimulation(delta: Float, maxSubSteps: Int) {
+        dynamicsWorld.stepSimulation(delta, maxSubSteps, 1 / 80f)
     }
 
     override fun clientTick() {

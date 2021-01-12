@@ -50,64 +50,66 @@ abstract class WorldRendererMixin {
     public void tickPhysics(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
         long newTime = System.currentTimeMillis();
         PhysicsWorldComponent phys = KevlarComponents.getPHYS_WORLD().get(world);
-        phys.getDynamicsWorld().stepSimulation((newTime - time) / 1000.0f, 10);
+        phys.stepSimulation((newTime - time) / 1000.0f, 1);
         time = newTime;
     }
 
     @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;draw(Lnet/minecraft/client/render/RenderLayer;)V", ordinal = 0), method = "render")
     public void postRender(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f, CallbackInfo ci) {
-//        if (true)return;
         VertexConsumerProvider.Immediate immediate = this.bufferBuilders.getEntityVertexConsumers();
 
         Vec3d vec3d = camera.getPos();
-        double d = vec3d.getX();
-        double e = vec3d.getY();
-        double f = vec3d.getZ();
+        double camX = vec3d.getX();
+        double camY = vec3d.getY();
+        double camZ = vec3d.getZ();
 
         PhysicsWorldComponent phys = KevlarComponents.getPHYS_WORLD().get(world);
 
         matrices.push();
-        matrices.translate(-d, -e, -f);
-//        RenderSystem.pushMatrix();
-//        RenderSystem.multMatrix(matrices.peek().getModel());
-//        BufferBuilder buffer = KevlarModClient.Companion.getDrawer().getBuffer();
-//        buffer.begin(GL11.GL_LINES, VertexFormats.POSITION_COLOR);
-//        phys.getDynamicsWorld().debugDrawWorld();
-//        buffer.end();
-//
-//        RenderSystem.disableTexture();
-//        RenderSystem.enableDepthTest();
-//        BufferRenderer.draw(buffer);
-//        RenderSystem.disableDepthTest();
-//        RenderSystem.enableTexture();
-//
-//        RenderSystem.popMatrix();
+        matrices.translate(-camX, -camY, -camZ);
+        if (KevlarModClient.Companion.getDebugDrawEnabled()) {
+            RenderSystem.pushMatrix();
+            RenderSystem.multMatrix(matrices.peek().getModel());
+            BufferBuilder buffer = KevlarModClient.Companion.getDrawer().getBuffer();
+            buffer.begin(GL11.GL_LINES, VertexFormats.POSITION_COLOR);
+            phys.getDynamicsWorld().debugDrawWorld();
+            buffer.end();
 
-        btCollisionObjectArray arr = phys.getDynamicsWorld().getCollisionObjectArrayConst();
+            RenderSystem.disableTexture();
+            RenderSystem.enableDepthTest();
+            BufferRenderer.draw(buffer);
+            RenderSystem.disableDepthTest();
+            RenderSystem.enableTexture();
+
+            RenderSystem.popMatrix();
+        }
+
         BakedModel model = Myron.getModel(new Identifier("kevlar", "models/misc/sphere"));
 
-        for (int i = 0; i < arr.size(); i++) {
-            btCollisionObject obj = arr.atConst(i);
-            if (obj.getCollisionShape() == phys.getBallShape() && obj instanceof btRigidBody) {
+        for (btRigidBody rb : phys.getRegisteredRigidBodies().values()) {
                 matrices.push();
                 Matrix4 trans = new Matrix4();
-                ((btRigidBody) obj).getMotionState().getWorldTransform(trans);
+                rb.getMotionState().getWorldTransform(trans);
                 Quaternion quat = trans.getRotation(new Quaternion());
                 Vector3 pos = trans.getTranslation(new Vector3());
                 BlockPos blockPos = new BlockPos(pos.x, pos.y, pos.z);
                 matrices.translate(pos.x, pos.y, pos.z);
                 matrices.multiply(new net.minecraft.util.math.Quaternion(quat.x, quat.y, quat.z, quat.w));
-//                matrices.translate(-0.5D, -0.5d, -0.5D);
-//                BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
-//                blockRenderManager.getModelRenderer().render(MinecraftClient.getInstance().world, blockRenderManager.getModel(Blocks.OAK_LOG.getDefaultState()), Blocks.OAK_LOG.getDefaultState(), blockPos, matrices, immediate.getBuffer(RenderLayers.getMovingBlockLayer(Blocks.OAK_LOG.getDefaultState())), false, new Random(), 0, OverlayTexture.DEFAULT_UV);
 
                 VertexConsumer consumer = immediate.getBuffer(RenderLayer.getSolid());
+            if (rb.getCollisionShape() == phys.getBallShape()) {
+
                 int light = LightmapTextureManager.pack(world.getLightLevel(LightType.BLOCK, blockPos), world.getLightLevel(LightType.SKY, blockPos));
                 MatrixStack.Entry entry = matrices.peek();
                 model.getQuads(null, null, new Random()).forEach(quad -> consumer.quad(entry, quad, 1F, 1F, 1F, light, OverlayTexture.DEFAULT_UV));
-
-                matrices.pop();
             }
+            else {
+                matrices.scale(0.2f, 0.2f, 0.2f);
+                matrices.translate(-0.5D, -0.5d, -0.5D);
+                BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
+                blockRenderManager.getModelRenderer().render(MinecraftClient.getInstance().world, blockRenderManager.getModel(Blocks.DIAMOND_BLOCK.getDefaultState()), Blocks.DIAMOND_BLOCK.getDefaultState(), blockPos, matrices, immediate.getBuffer(RenderLayers.getMovingBlockLayer(Blocks.DIAMOND_BLOCK.getDefaultState())), false, new Random(), 0, OverlayTexture.DEFAULT_UV);
+            }
+            matrices.pop();
         }
         matrices.pop();
     }
