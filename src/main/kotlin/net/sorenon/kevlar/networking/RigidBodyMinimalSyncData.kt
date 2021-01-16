@@ -7,6 +7,8 @@ import com.badlogic.gdx.math.Quaternion
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody
 import net.minecraft.network.PacketByteBuf
+import net.sorenon.kevlar.readVec
+import net.sorenon.kevlar.writeVec
 
 class RigidBodyMinimalSyncData(buf: PacketByteBuf) {
     companion object {
@@ -30,12 +32,6 @@ class RigidBodyMinimalSyncData(buf: PacketByteBuf) {
                 writeVec(rb.angularVelocity, buf)
             }
         }
-
-        private fun writeVec(vec: Vector3, buf: PacketByteBuf) {
-            buf.writeFloat(vec.x)
-            buf.writeFloat(vec.y)
-            buf.writeFloat(vec.z)
-        }
     }
 
     val activationState: Int
@@ -54,9 +50,5 @@ class RigidBodyMinimalSyncData(buf: PacketByteBuf) {
             vel = readVec(buf)
             aVel = readVec(buf)
         }
-    }
-
-    private fun readVec(buf: PacketByteBuf): Vector3 {
-        return Vector3(buf.readFloat(), buf.readFloat(), buf.readFloat())
     }
 }

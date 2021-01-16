@@ -32,7 +32,7 @@ class PhysGun(settings: Settings) : Item(settings) {
         if (rBody !is btRigidBody || rBody.isStaticObject) {
             return super.use(world, user, hand)
         }
-        KevlarComponents.GRABBER.get(user).tryGrab(rBody)
+        KevlarComponents.GRABBER.get(user).grabRigidBody(rBody)
 
         user.setCurrentHand(hand)
         return TypedActionResult.consume(user.activeItem)

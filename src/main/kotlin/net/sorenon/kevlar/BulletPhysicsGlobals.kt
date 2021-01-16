@@ -9,6 +9,10 @@ import net.minecraft.util.shape.VoxelShape
 import net.sorenon.kevlar.init.KevlarMod
 
 object BulletPhysicsGlobals {
+    const val FLAG_SERVERSIDE          = 0x1
+    const val FLAG_MARKED_FOR_DELETION = 0x2
+    const val FLAG_THROWN_BY_GRAVGUN   = 0x4
+
     val matrix4 = Matrix4()
 
     val blockShapes = hashMapOf<BlockState, btCollisionShape?>()

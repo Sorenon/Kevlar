@@ -17,7 +17,6 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.network.ServerPlayerEntity
 import net.sorenon.kevlar.init.KevlarComponents
-import net.sorenon.kevlar.init.KevlarMod
 import kotlin.math.max
 
 class GrabberComponent(val player: PlayerEntity) : ComponentV3, Component, PlayerComponent<GrabberComponent>,
@@ -26,6 +25,7 @@ class GrabberComponent(val player: PlayerEntity) : ComponentV3, Component, Playe
     var distance = 0.5
     val grabBody: btRigidBody = btRigidBody(0f, btDefaultMotionState(), btEmptyShape())
     val trans = Matrix4()
+    var savedMass = -1f
 
     var otherBody: btRigidBody? = null
     var constraint: btFixedConstraint? = null
@@ -46,7 +46,7 @@ class GrabberComponent(val player: PlayerEntity) : ComponentV3, Component, Playe
         tick()
     }
 
-    fun tryGrab(rigidBody: btRigidBody) {
+    fun grabRigidBody(rigidBody: btRigidBody) {
         val phys = KevlarComponents.PHYS_WORLD.get(player.world)
         val cameraPos = player.getCameraPosVec(1.0f)
 
@@ -61,10 +61,16 @@ class GrabberComponent(val player: PlayerEntity) : ComponentV3, Component, Playe
         constraint = btFixedConstraint(rigidBody, grabBody, Matrix4(), Matrix4())
         phys.dynamicsWorld.addRigidBody(grabBody)
         phys.dynamicsWorld.addConstraint(constraint)
+
+        savedMass = 1 / rigidBody.invMass
+        val smallerMass = 1f
+        val interia = Vector3()
+        rigidBody.collisionShape.calculateLocalInertia(smallerMass, interia)
+        rigidBody.setMassProps(smallerMass, interia)
     }
 
-    fun tick() {
-        if (isHoldingRB() && (player is ServerPlayerEntity || player is ClientPlayerEntity)) {
+    private fun tick() {
+        if (isHoldingRigidBody() && (player is ServerPlayerEntity || player is ClientPlayerEntity)) {
             distance = max(0.5, distance)
 
             val cameraPos = player.getCameraPosVec(1.0f)
@@ -80,19 +86,26 @@ class GrabberComponent(val player: PlayerEntity) : ComponentV3, Component, Playe
     }
 
     fun drop() {
-        if (isHoldingRB()) {
+        if (isHoldingRigidBody()) {
             val phys = KevlarComponents.PHYS_WORLD.get(player.world)
+
+            phys.dynamicsWorld.removeRigidBody(otherBody!!)
+            val interia = Vector3()
+            otherBody!!.collisionShape.calculateLocalInertia(savedMass, interia)
+            otherBody!!.setMassProps(savedMass, interia)
+            phys.dynamicsWorld.addRigidBody(otherBody!!)
+
             phys.dynamicsWorld.removeConstraint(constraint)
             phys.dynamicsWorld.removeRigidBody(grabBody)
             constraint!!.dispose()
             constraint = null
             otherBody = null
         } else {
-            KevlarMod.LOGGER.warn("$player Tried dropping a rigidbody that doesn't exist")
+//            KevlarMod.LOGGER.warn("$player Tried dropping a rigidbody that doesn't exist")
         }
     }
 
-    fun isHoldingRB(): Boolean {
+    fun isHoldingRigidBody(): Boolean {
         return if (otherBody?.isDisposed == false) {
             true
         } else {

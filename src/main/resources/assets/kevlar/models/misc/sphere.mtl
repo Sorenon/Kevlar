@@ -3,4 +3,5 @@
 
 newmtl redstone
 emissive true
-texture minecraft:block/oak_log
+#texture minecraft:block/oak_log
+texture minecraft:block/tnt_side

@@ -5,10 +5,7 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemGroup
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
-import net.sorenon.kevlar.item.BallItem
-import net.sorenon.kevlar.item.GravityGun
-import net.sorenon.kevlar.item.MiniBlockItem
-import net.sorenon.kevlar.item.PhysGun
+import net.sorenon.kevlar.item.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
@@ -41,7 +38,16 @@ class KevlarMod : ModInitializer {
             )
         )
 
+        val BARREL_ITEM = BarrelItem(
+            Item.Settings().group(
+                ItemGroup.TOOLS
+            )
+        )
+
         val S2C_UPDATE_RIGIDBODY_STATES = Identifier("kevlar", "update_rb")
+        val S2C_CREATE_OR_UPDATE_RB = Identifier("kevlar", "create_or_update_rb")
+        val S2C_REMOVE_RB = Identifier("kevlar", "remove_rb")
+        val S2C_GRAB_RB = Identifier("kevlar", "grab_rb")
     }
 
     override fun onInitialize() {
@@ -49,6 +55,7 @@ class KevlarMod : ModInitializer {
         registerItem(PHYS_GUN_ITEM, "phys_gun")
         registerItem(BALL_ITEM, "ball")
         registerItem(BLOCK_ITEM, "mini_block")
+        registerItem(BARREL_ITEM, "barrel")
     }
 
     private fun registerItem(item: Item, name: String) {
