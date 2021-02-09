@@ -20,7 +20,6 @@ class PhysicsCollisionCallback : ContactListener() {
                 return
             }
         }
-
         var flags = body.flags
         if (flags and BulletPhysicsGlobals.FLAG_THROWN_BY_GRAVGUN != 0) {
             if (flags and BulletPhysicsGlobals.FLAG_SERVERSIDE != 0) {

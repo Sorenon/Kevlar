@@ -23,6 +23,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 import net.sorenon.kevlar.PhysicsWorldComponent;
 import net.sorenon.kevlar.init.KevlarComponents;
+import net.sorenon.kevlar.init.KevlarMod;
 import net.sorenon.kevlar.init.KevlarModClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
@@ -125,9 +126,12 @@ abstract class WorldRendererMixin {
                 BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
                 blockRenderManager.getModelRenderer().render(MinecraftClient.getInstance().world, blockRenderManager.getModel(Blocks.DIAMOND_BLOCK.getDefaultState()), Blocks.DIAMOND_BLOCK.getDefaultState(), blockPos, matrices, immediate.getBuffer(RenderLayers.getMovingBlockLayer(Blocks.DIAMOND_BLOCK.getDefaultState())), false, new Random(), 0, OverlayTexture.DEFAULT_UV);
             } else {
-                int light = LightmapTextureManager.pack(world.getLightLevel(LightType.BLOCK, blockPos), world.getLightLevel(LightType.SKY, blockPos));
-                MatrixStack.Entry entry = matrices.peek();
-                barrelModel.getQuads(null, null, new Random()).forEach(quad -> consumer.quad(entry, quad, 1F, 1F, 1F, light, OverlayTexture.DEFAULT_UV));
+//                int light = LightmapTextureManager.pack(world.getLightLevel(LightType.BLOCK, blockPos), world.getLightLevel(LightType.SKY, blockPos));
+//                MatrixStack.Entry entry = matrices.peek();
+//                barrelModel.getQuads(null, null, new Random()).forEach(quad -> consumer.quad(entry, quad, 1F, 1F, 1F, light, OverlayTexture.DEFAULT_UV));
+                matrices.translate(-0.5D, -0.5d, -0.5D);
+                BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
+                blockRenderManager.getModelRenderer().render(MinecraftClient.getInstance().world, blockRenderManager.getModel(KevlarMod.Companion.getTMP_BLOCK().getDefaultState()), KevlarMod.Companion.getTMP_BLOCK().getDefaultState(), blockPos, matrices, immediate.getBuffer(RenderLayers.getMovingBlockLayer(KevlarMod.Companion.getTMP_BLOCK().getDefaultState())), false, new Random(), 0, OverlayTexture.DEFAULT_UV);
             }
             matrices.pop();
         }

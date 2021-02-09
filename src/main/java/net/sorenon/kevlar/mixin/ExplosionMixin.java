@@ -48,13 +48,13 @@ public class ExplosionMixin {
         Vector3 explosionPos = new Vector3((float) x, (float) y, (float) z);
 //        Vector3 posO = new Vector3((float) x, (float) y - 0.4f, (float) z);
 
-        float q = this.power * 2.0F;
-        int x1 = MathHelper.floor(this.x - (double) q - 1.0D);
-        int x2 = MathHelper.floor(this.x + (double) q + 1.0D);
-        int y1 = MathHelper.floor(this.y - (double) q - 1.0D);
-        int y2 = MathHelper.floor(this.y + (double) q + 1.0D);
-        int z1 = MathHelper.floor(this.z - (double) q - 1.0D);
-        int z2 = MathHelper.floor(this.z + (double) q + 1.0D);
+        float radius = this.power * 2.0F;
+        int x1 = MathHelper.floor(this.x - (double) radius - 1.0D);
+        int x2 = MathHelper.floor(this.x + (double) radius + 1.0D);
+        int y1 = MathHelper.floor(this.y - (double) radius - 1.0D);
+        int y2 = MathHelper.floor(this.y + (double) radius + 1.0D);
+        int z1 = MathHelper.floor(this.z - (double) radius - 1.0D);
+        int z2 = MathHelper.floor(this.z + (double) radius + 1.0D);
         Vector3 min = new Vector3(x1, y1, z1);
         Vector3 max = new Vector3(x2, y2, z2);
 
@@ -62,53 +62,38 @@ public class ExplosionMixin {
         CollectRigidBodiesAABBCallback callback = new CollectRigidBodiesAABBCallback();
         phys.getBroadphase().aabbTest(min, max, callback);
 
-        Matrix4 explosionTransform = new Matrix4();
-        explosionTransform.setToTranslation(explosionPos);
+        Matrix4 explosionPositionTransform = new Matrix4();
+        explosionPositionTransform.setToTranslation(explosionPos);
 
         Matrix4 rbTransform = new Matrix4();
+        Matrix4 rbPositionTransform = new Matrix4();
 
         for (btRigidBody rb : callback.getRigidBodies()) {
-            System.out.println(rb.getUserValue());
             rb.getWorldTransform(rbTransform);
-
             Vector3 rbPos = rbTransform.getTranslation(new Vector3());
-            ClosestRayResultCallback result = new ClosestRayResultCallback(explosionPos, rbPos);
 
+            float invPower = 1 - Math.min(rbPos.dst(explosionPos) / radius, 1);
+            if (invPower > 0) {
+                ClosestRayResultCallback result = new ClosestRayResultCallback(explosionPos, rbPos);
 
-            Matrix4 transFrom = new Matrix4();
-            Matrix4 transTo = new Matrix4();
-            transFrom.setToTranslation(explosionPos);
-            transTo.setToTranslation(rbPos);
-            Vector3 rayDir = rbPos.cpy().sub(explosionPos).add(0.05f, 0.1f, 0.05f).nor(); //Sub 0.2 from y to induce spin and to kick things up
+                rbPositionTransform.setToTranslation(rbPos);
+                Vector3 rayDir = rbPos.cpy().sub(explosionPos).add(0.05f, 0.1f, 0.05f).nor(); //Modify direction of blast to induce spin and to kick things up
 
-            System.out.println(rb.getWorldTransform().getTranslation(new Vector3()));
-            System.out.println(rbTransform.getTranslation(new Vector3()));
+                btCollisionWorld.rayTestSingle(
+                        explosionPositionTransform,
+                        rbPositionTransform,
+                        rb,
+                        rb.getCollisionShape(),
+                        rbTransform,
+                        result);
 
-            System.out.println("E Pos" + explosionPos);
-            System.out.println("E Dir" + rbPos.cpy().sub(explosionPos).nor());
-            System.out.println("E Dir" + rayDir);
+                Vector3 hitPos = new Vector3();
+                result.getHitPointWorld(hitPos);
+                hitPos.sub(rbPos);
 
-            btCollisionWorld.rayTestSingle(
-                    transFrom,
-                    transTo,
-                    rb,
-                    rb.getCollisionShape(),
-                    rbTransform,
-                    result);
-
-
-            System.out.println(result.hasHit());
-            Vector3 hitPos = new Vector3();
-            result.getHitPointWorld(hitPos);
-            System.out.println(hitPos);
-            phys.setLastPos(hitPos.cpy());
-
-            hitPos.sub(rbPos);
-            System.out.println(hitPos);
-            System.out.println(rbPos.cpy().add(hitPos));
-
-            rb.activate();
-            rb.applyImpulse(rayDir.scl(190f), hitPos);
+                rb.activate();
+                rb.applyImpulse(rayDir.scl(invPower * 190f), hitPos);
+            }
         }
     }
 }

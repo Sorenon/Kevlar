@@ -1,5 +1,3 @@
 {
-  "parent": "minecraft:block/block",
-  "model": "kevlar:misc/cylinder",
-  "gui_light": "side"
+  "parent": "kevlar:block/explosive_barrel"
 }
